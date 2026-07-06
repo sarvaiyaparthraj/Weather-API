@@ -1,61 +1,50 @@
-document.getElementById("form").addEventListener("submit",async(e)=>{
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const result = document.getElementById("result");
+
+const API_KEY = "14c3868875e443bfad464119260407";
+
+form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-const input = document.getElementById("input_id").value.trim();
-const celsius = document.getElementById("c");
-const humidity = document.getElementById("h");
+    const city = input.value.trim();
 
-const speed = document.getElementById("s");
+    if (city === "") {
+        result.innerHTML = "<h3>Please Enter City Name</h3>";
+        return;
+    }
 
+    try {
 
-celsius.textContent = "";
-humidity.textContent = "";
-speed.textContent = "";
+        const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`);
 
+        const data = await response.json();
 
-if(!input){
+        if (data.error) {
+            result.innerHTML = `<h3>${data.error.message}</h3>`;
+            return;
+        }
 
-    celsius.textContent = "Enter your city name";
+        result.innerHTML = `
+            <h2>${data.location.name}, ${data.location.country}</h2>
 
-    return;
-}
+          
 
-try{
+            <h3>${data.current.temp_c} °C</h3>
 
-    const api = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${input}&appid=741c8e2867412a6d048b623e3dbfc3c6&units=metric`);
+            <p>Condition : ${data.current.condition.text}</p>
 
-    const data = await api.json();
+            <p>Humidity : ${data.current.humidity}%</p>
 
-    console.log(data);
+            <p>Wind Speed : ${data.current.wind_kph} km/h</p>
+        `;
 
+    } catch (error) {
 
-    if(data.cod !== 200){
-
-        throw new Error("city not found ")
-
+        result.innerHTML = "<h3>Something Went Wrong</h3>";
+        console.log(error);
 
     }
 
-    humidity.textContent = data.name;
-
-    speed.innerHTML = `
-    
-    <p>Temperature : ${data.main.temp}</p>
-    <p>Humidity : ${data.main.humidity}</p>
-    <p>Speed : ${data.wind.speed}</p>
-    <p>Condition :${data.weather[0].main}</p>
-    `;
-
-
-
-
-}catch(err){
-
-    celsius.textContent="city not found";
-    console.log(err);
-}
-
-
-
-})
+});
